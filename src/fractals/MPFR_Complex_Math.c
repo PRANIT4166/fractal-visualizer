@@ -85,12 +85,12 @@ status set_var_c(var_c *z_dst, const var_c *z_src, const var_prop *prop){
     return SUCCESS;
 
 }
-status set_var_c_double(var_c *z_dst, const double real, const double img, const var_prop *prop){
+status set_var_c_ano(var_c *z_dst, const mpfr_t real, const mpfr_t img, const var_prop *prop){
 
     if(!z_dst || !prop) return NULL_POINTER;
 
-    mpfr_set_d(z_dst->r, real, prop->round_mode);
-    mpfr_set_d(z_dst->im, img, prop->round_mode);
+    mpfr_set(z_dst->r, real, prop->round_mode);
+    mpfr_set(z_dst->im, img, prop->round_mode);
 
     return SUCCESS;
 }
