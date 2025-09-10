@@ -9,7 +9,8 @@ typedef enum
     NULL_POINTER, // null pointer passed
     ERR_INIT,     // variable not initialized
     ERR_NO_MEM,   // memory allocation failure
-    ERR_MATH,     // invalid math domain
+    ERR_MATH,      // invalid math domain
+    FAILED_AT_ITER,    // failed while itherating Zs
     ERR_UNKNOWN   // catch-all
 } status;
 
@@ -46,7 +47,7 @@ status clear_temp_var(temp_var *temps);
 status init_var_c(var_c *z, const var_prop *prop);
 status clear_var_c(var_c *z);
 status set_var_c(var_c *z_dst, const var_c *z_src, const var_prop *prop);
-status set_var_c_double(var_c *z_dst, const double real, const double img, const var_prop *prop);
+status set_var_c_ano(var_c *z_dst, const mpfr_t real, const mpfr_t img, const var_prop *prop);
 status set_var_c_str(var_c *z_dst, const char* real, const char* img, const var_prop *prop); // big brain shit
 status set_var_c_zero(var_c *z);
 
