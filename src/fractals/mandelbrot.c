@@ -92,7 +92,7 @@ status mandelbrot_comp(pixel_prop *map, const margins_val *margins, int max_leve
             set_var_c_ano(&c, new_margins.x, new_margins.y, &prop);
 
             // run iteration
-            status final_status = mandelbrot_iter(&z, &c, max_level, &pixel(map, px, py, margins->width), &prop, &temps);
+            // status final_status = mandelbrot_iter(&z, &c, max_level, &pixel(map, px, py, margins->width), &prop, &temps);
 
             if(final_status != SUCCESS) return FAILED_AT_ITER;
         }
