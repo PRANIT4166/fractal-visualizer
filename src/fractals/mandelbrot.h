@@ -6,7 +6,7 @@
 typedef struct 
 {
     int escape_level;
-    double smooth_iter;  // double??
+    mpfr_t smooth_iter;  
 } pixel_prop;
 
 typedef struct 
