@@ -11,8 +11,8 @@ typedef struct
 
 typedef struct 
 {
-    int height;
-    int width;
+    unsigned int height;
+    unsigned int width;
     char* x_max;
     char* x_min;
     char* y_max;

@@ -10,7 +10,8 @@ typedef enum
     ERR_INIT,     // variable not initialized
     ERR_NO_MEM,   // memory allocation failure
     ERR_MATH,      // invalid math domain
-    FAILED_AT_ITER,    // failed while itherating Zs
+    FAILED_AT_ITER,
+    ERR_TRUNCATED,    // failed while itherating Zs
     ERR_UNKNOWN   // catch-all
 } status;
 
@@ -38,14 +39,16 @@ typedef struct
 
 // --------- WS initialising -----
 
-status set_var_prop(var_prop *prop, const mpfr_prec_t prec, const mpfr_rnd_t rnd);
-status set_temp_var(temp_var *temps, const var_prop *prop);
-status clear_temp_var(temp_var *temps);
+var_prop* create_var_prop(const mpfr_prec_t prec, const mpfr_rnd_t rnd);
+void destroy_var_prop(var_prop* prop);
+temp_var* create_temp_var(const var_prop* prop);
+void destroy_temp_var(temp_var* temps);
+
 
 // ----------- complex number initiliasing -------------
 
-status init_var_c(var_c *z, const var_prop *prop);
-status clear_var_c(var_c *z);
+var_c* create_var_c(const var_prop* prop);
+void destroy_var_c(var_c* z);
 status set_var_c(var_c *z_dst, const var_c *z_src, const var_prop *prop);
 status set_var_c_ano(var_c *z_dst, const mpfr_t real, const mpfr_t img, const var_prop *prop);
 status set_var_c_str(var_c *z_dst, const char* real, const char* img, const var_prop *prop); // big brain shit

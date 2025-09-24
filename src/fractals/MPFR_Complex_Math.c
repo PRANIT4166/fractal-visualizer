@@ -1,5 +1,6 @@
 #include "MPFR_Complex_Math.h"
 #include <stdio.h>
+#include <stdlib.h>
 // -------- Error codes -----------
 
 const char* strerror(status err){
@@ -15,6 +16,10 @@ const char* strerror(status err){
         return "MALLOC FAILED";
     case ERR_MATH:
         return "MATH ERROR";   
+    case FAILED_AT_ITER:
+        return "Failed at Iteration";
+    case ERR_TRUNCATED:  
+        return "STRING BUFFER TRUNCATED";
     default:
         return "ERR_UNKNOWN";
     }
@@ -22,58 +27,67 @@ const char* strerror(status err){
 
 // --------- WS initialising -----
 
-status set_var_prop(var_prop *prop, const mpfr_prec_t prec, const mpfr_rnd_t rnd){
+var_prop* create_var_prop(const mpfr_prec_t prec, const mpfr_rnd_t rnd){
 
-    if(!prop) return NULL_POINTER;
-    if(prec<=0) return ERR_MATH;
+    if (prec <= 0) return NULL;
+
+    var_prop* prop = malloc(sizeof(var_prop));
+    if (!prop) return NULL;
 
     prop->precision = prec;
     prop->round_mode = rnd;
 
-    return SUCCESS;
+    return prop;
 }
-status set_temp_var(temp_var *temps, const var_prop *prop){
+void destroy_var_prop(var_prop* prop) {
+    if (prop) free(prop);
+}
+temp_var* create_temp_var(const var_prop* prop) {
 
-    if(!temps || !prop) return NULL_POINTER;
+    if (!prop) return NULL;
+
+    temp_var* temps = malloc(sizeof(temp_var));
+    if (!temps) return NULL;
 
     mpfr_init2(temps->temp1, prop->precision);
     mpfr_init2(temps->temp2, prop->precision);
     mpfr_init2(temps->temp3, prop->precision);
     mpfr_init2(temps->temp4, prop->precision);
 
-    return SUCCESS;
+    return temps;
 }
-status clear_temp_var(temp_var *temps){
+void destroy_temp_var(temp_var* temps) {
 
-    if(!temps) return NULL_POINTER;
-
-    mpfr_clear(temps->temp1);
-    mpfr_clear(temps->temp2);
-    mpfr_clear(temps->temp3);
-    mpfr_clear(temps->temp4);
-
-    return SUCCESS;
+    if (temps) {
+        mpfr_clear(temps->temp1);
+        mpfr_clear(temps->temp2);
+        mpfr_clear(temps->temp3);
+        mpfr_clear(temps->temp4);
+        free(temps);
+    }
 }
 
 // ----------- complex number initiliasing -------------
 
-status init_var_c(var_c *z, const var_prop *prop){
+var_c* create_var_c(const var_prop* prop){
 
-    if(!z || !prop) return NULL_POINTER;
+    if (!prop) return NULL;
+
+    var_c* z = malloc(sizeof(var_c));
+    if (!z) return NULL;
 
     mpfr_init2(z->r, prop->precision);
     mpfr_init2(z->im, prop->precision);
 
-    return SUCCESS;    
+    return z;   
 }   
-status clear_var_c(var_c *z){
+void destroy_var_c(var_c* z) {
 
-    if(!z) return NULL_POINTER;
-
-    mpfr_clear(z->r);
-    mpfr_clear(z->im);
-
-    return SUCCESS;
+    if (z) {
+        mpfr_clear(z->r);
+        mpfr_clear(z->im);
+        free(z);
+    }
 }
 status set_var_c(var_c *z_dst, const var_c *z_src, const var_prop *prop){
 
@@ -96,7 +110,7 @@ status set_var_c_ano(var_c *z_dst, const mpfr_t real, const mpfr_t img, const va
 }
 status set_var_c_str(var_c *z_dst, const char* real, const char* img, const var_prop *prop){
 
-    if(!z_dst || !prop) return NULL_POINTER;
+    if(!z_dst || !prop || !real || !img) return NULL_POINTER;
 
     mpfr_set_str(z_dst->r, real, 10, prop->round_mode);
     mpfr_set_str(z_dst->im, img, 10, prop->round_mode);
@@ -154,7 +168,7 @@ status sqr_c(var_c *z_dst, const var_c *z_src, const var_prop *prop, temp_var *t
     mpfr_sqr(temps->temp1, z_src->r, prop->round_mode);
     mpfr_sqr(temps->temp2, z_src->im, prop->round_mode);
     mpfr_mul(temps->temp3, z_src->r, z_src->im, prop->round_mode);
-    mpfr_mul_2si(temps->temp4, temps->temp3, 2, prop->round_mode);
+    mpfr_mul_ui(temps->temp4, temps->temp3, 2, prop->round_mode);
 
     mpfr_sub(z_dst->r, temps->temp1, temps->temp2, prop->round_mode);
     mpfr_set(z_dst->im, temps->temp4, prop->round_mode);
@@ -197,7 +211,9 @@ status print_c_prec(const var_c *z, const var_prop *prop, const int digits){
     if(!z || !prop) return NULL_POINTER;
     if(digits<=0) return ERR_MATH;
 
-    mpfr_printf("testing 1 with : %.70Rg , %.70Rg \n", z->r, z->im);
+    // mpfr_printf("testing 1 with : %.70Rg , %.70Rg \n", z->r, z->im);
+    mpfr_printf("(%.*Rg, %.*Rg)\n", digits, z->r, digits, z->im);
+
 
     return SUCCESS;
 }
@@ -209,7 +225,10 @@ status c_to_str(char *buf, size_t n, const var_c *z, const var_prop *prop, const
     // mpfr_snprintf returns number of chars that WOULD have been written, or negative on error.
     int need = mpfr_snprintf(buf, n, "(%.*Rg, %.*Rg)", digits, z->r, digits, z->im);
     if (need < 0) return ERR_UNKNOWN;
-    // if(need>=n) the string was truncated
+
+    // ADD THIS CHECK: If the needed space is >= the buffer size, the string was cut off.
+    if ((size_t)need >= n) return ERR_TRUNCATED;
+
     return SUCCESS;
 }
 
